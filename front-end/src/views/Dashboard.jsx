@@ -29,7 +29,7 @@ import BetsService from '../services/bets-service'
 const Dashboard = () => {
   const [, setLocation] = useLocation()
   const { user } = useAuth()
-  const { balance, walletType, totalBets } = useWallet()
+  const { balance, walletType, totalBets, setTotalBetsValue } = useWallet()
 
   const betsService = new BetsService()
   const [stats, setStats] = useState({
@@ -94,6 +94,9 @@ const Dashboard = () => {
         const resolvedTotalBets = Number.isFinite(apiTotalBets)
           ? Math.max(apiTotalBets, totalBets || 0)
           : Math.max(mockStats.totalBets, totalBets || 0)
+        if (resolvedTotalBets > totalBets) {
+          setTotalBetsValue(resolvedTotalBets)
+        }
         setStats({
           ...mockStats,
           totalBets: resolvedTotalBets
@@ -103,9 +106,13 @@ const Dashboard = () => {
       throw new Error(response?.message || 'Failed to load total bets')
     } catch (error) {
       toast.error('Failed to load total bets')
+      const fallbackTotalBets = Math.max(mockStats.totalBets, totalBets || 0)
+      if (fallbackTotalBets > totalBets) {
+        setTotalBetsValue(fallbackTotalBets)
+      }
       setStats({
         ...mockStats,
-        totalBets: Math.max(mockStats.totalBets, totalBets || 0)
+        totalBets: fallbackTotalBets
       })
     }
   }
