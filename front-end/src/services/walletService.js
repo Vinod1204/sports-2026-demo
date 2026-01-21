@@ -1,8 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-
-// Create axios instance
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api'
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -59,7 +57,7 @@ export const walletService = {
     try {
       const params = { limit, offset }
       if (type) params.type = type
-      
+
       const response = await api.get('/wallet/transactions', { params })
       return response.data.data
     } catch (error) {
