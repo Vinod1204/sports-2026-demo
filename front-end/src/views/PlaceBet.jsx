@@ -3,9 +3,11 @@ import { useLocation } from 'wouter'
 import { motion } from 'framer-motion'
 import { Target, DollarSign, ArrowLeft, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useWallet } from '../contexts/WalletContext'
 
 const PlaceBet = () => {
   const [, setLocation] = useLocation()
+  const { placeBet } = useWallet()
   const [game, setGame] = useState(null)
   const [selectedBet, setSelectedBet] = useState(null)
   const [betAmount, setBetAmount] = useState('')
@@ -32,13 +34,21 @@ const PlaceBet = () => {
     setSelectedBet({ selection, odds })
   }
 
-  const handlePlaceBet = () => {
+const handlePlaceBet = async () => {
     if (!selectedBet || !betAmount) {
       toast.error('Please select a bet and enter amount')
       return
     }
-    toast.success('Bet placed successfully! 🎉')
-    setLocation('/dashboard')
+    const amountValue = Number(betAmount)
+    if (!Number.isFinite(amountValue) || amountValue <= 0) {
+      toast.error('Please enter a valid bet amount')
+      return
+    }
+
+    const success = await placeBet(game.id, selectedBet.selection, amountValue, selectedBet.odds)
+    if (success) {
+      setLocation('/dashboard')
+    }
   }
 
   if (isLoading) {
