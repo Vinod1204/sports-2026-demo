@@ -43,13 +43,40 @@ const Predictions = () => {
     filterPredictions()
   }, [predictions, searchTerm, selectedConfidence])
 
+  const formatGameLabel = (game) => {
+    if (!game) {
+      return 'TBD'
+    }
+    if (typeof game === 'string') {
+      return game
+    }
+    if (Array.isArray(game?.teams) && game.teams.length >= 2) {
+      return `${game.teams[0]} vs ${game.teams[1]}`
+    }
+    if (game?.homeTeam && game?.awayTeam) {
+      return `${game.homeTeam} vs ${game.awayTeam}`
+    }
+    return 'TBD'
+  }
+
+  const normalizeConfidence = (confidence) => {
+    const parsed = Number(confidence ?? 0)
+    if (!Number.isFinite(parsed)) {
+      return 0
+    }
+    if (parsed > 0 && parsed <= 10) {
+      return parsed * 10
+    }
+    return parsed
+  }
+
   const normalizePrediction = (prediction) => ({
-    id: prediction?.id ?? `prediction_${Date.now()}`,
-    game: prediction?.game ?? 'TBD',
-    date: prediction?.date ?? new Date().toISOString(),
-    prediction: prediction?.prediction ?? 'Pending prediction',
-    confidence: Number(prediction?.confidence ?? 0),
-    odds: Number(prediction?.odds ?? 0),
+    id: prediction?.id ?? prediction?.gameId ?? `prediction_${Date.now()}`,
+    game: formatGameLabel(prediction?.game),
+    date: prediction?.date ?? prediction?.game?.date ?? prediction?.timestamp ?? new Date().toISOString(),
+    prediction: prediction?.prediction ?? prediction?.recommendation ?? 'Pending prediction',
+    confidence: normalizeConfidence(prediction?.confidence),
+    odds: Number(prediction?.odds ?? prediction?.edge ?? 0),
     reasoning: prediction?.reasoning ?? 'AI insights are being generated.',
     factors: Array.isArray(prediction?.factors) ? prediction.factors : [],
     riskLevel: prediction?.riskLevel ?? 'medium',
